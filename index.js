@@ -2,7 +2,7 @@
 import "dotenv/config" ; 
 import cors from "cors";
 import express from "express"; 
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 
 
@@ -44,6 +44,71 @@ app.get("/users" , async( req , res ) => {
     const cursor = users.find({}) ;
     const allUsers = await cursor.toArray() ;
     res.send(allUsers) ;
+})
+
+
+// single user data
+
+app.get("/users/:id" , async (req,res) =>{
+    console.log("params in the server",req.params);
+
+    const id = req.params.id ;
+
+    const query = { _id: new ObjectId(id) };
+    const result = await users.findOne(query) ;
+    res.send(result) ;
+
+})
+
+
+//add user
+app.post("/users" , async(req,res) => {
+    const newUser = req.body ;
+    const result = await users.insertOne(newUser) ;
+    
+    res.send(result) ;
+
+    console.log("Adding new user : " , newUser) ;
+})
+
+
+// updating a user 
+app.patch("/users/:id" , async (req,res) =>{
+    const id = req.params.id ;
+    const updatedUser = req.body ;
+
+    const filter = { 
+        _id: new ObjectId(id)
+    } ;
+
+    const options = { upsert: true } ;
+    const updateDoc = {
+        $set:{
+            name: updatedUser.name ,
+            email: updatedUser.email
+        }
+    }
+
+    const result = await users.updateOne(filter , updateDoc , options) ;
+
+    res.send(result) ;
+
+    
+
+})
+
+
+
+
+
+// deleting a user  (specific one)
+app.delete("/users/:id" , async (req,res) =>{
+
+    const id = req.params.id ;
+    const query = { _id: new ObjectId(id)} ;
+    const result = await users.deleteOne(query) ;
+
+    res.send(result) ;
 })
 
 
